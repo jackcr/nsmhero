@@ -1,0 +1,12 @@
+*** Scenario 3
+*** Note: Do not kill script unless an error message is displayed.
+*** Note: Do not close this window.  It is needed to answer the questions below.
+
+1. What port was used for the communication channel?
+2. What can you tell about the network?
+3. Was data exfiltrated?
+5. Replay lesson with 'sudo go -l 3 -n n'.  Use rule file to wirte snort rule to detect additional traffic observed.
+
+***Note: Once the snort rule has been written you must save and close the rules file before the scenario will continue.
+
+IF THERE ARE ANY QUESTIONS DURING THIS LESSON PLEASE DON'T HESITATE TO ASK.

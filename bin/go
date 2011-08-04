@@ -1,0 +1,167 @@
+#!/usr/bin/python
+
+import os
+import sys
+import MySQLdb
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("-l", "--lesson", dest="lesson", help="Current lesson number", metavar="Lesson")
+parser.add_option("-n", "--new", dest="new", default=False, help="Start new lesson", metavar="New")
+parser.add_option("-d", "--doc", dest="doc", help="Documents", metavar="Doc")
+(options, args) = parser.parse_args()
+
+NSMDOC = '/nsmhero/doc/'
+
+if options.doc == ('list'):
+        os.system('cat ' + NSMDOC + 'class_desc.txt')
+        sys.exit()
+
+if options.doc == ('readme'):
+        os.system('cat ' + NSMDOC + 'readme.txt')
+        sys.exit()
+
+if options.lesson == None:
+	print "-l lesson required."
+	sys.exit()
+
+ServerName = 'server1'
+SensorName = 'sensor1'
+NSMCLASS = '/nsmhero/lessons'
+NSMDATA = '/nsmhero/sensor_data/'
+NSMETC = '/etc/nsm'
+NSMCAP = NSMDATA + SensorName + '/dailylogs/*'
+NSMSANCP = NSMDATA + SensorName + '/sancp/*'
+NSMIDSLOG = NSMDATA + SensorName + '/*unified*'
+
+
+if options.lesson == ('0'):
+	print 'Lesson 0 is not valid.  Please choose a different lesson.'
+	sys.exit()
+
+if options.new == ('n'):
+	PCAPCP = 'cp '+ NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap /tmp'
+	os.system(PCAPCP)
+	METAFILE = NSMCLASS + '/' + options.lesson + '/meta'
+	META = open(METAFILE, "r")
+	lines = META.readlines()
+	for line in lines:
+		if line == ('newwireshark\n'):
+                        WSHARK = '/usr/sbin/wireshark -r ' + NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap' + ' &'
+                        os.system(WSHARK)
+		if line == ('newrules\n'):
+        		os.system('/usr/bin/kwrite /etc/nsm/sensor1/rules/local.rules')
+			os.system('/nsmhero/bin/create-sidmap.pl /etc/nsm/sensor1/rules > /etc/nsm/sensor1/sid-msg.map')
+			os.system('nsm --sensor --restart')
+		if line == ('newpcap\n'):
+			PCAPFILE = '/usr/bin/tcpreplay --pktlen -i eth0 ' + NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap'
+			os.system(PCAPFILE)
+		if line == ('newargus\n'):
+                        ARGUSFILE = 'argus -r ' + NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap -p -w - |ra -L0 -nn'
+                        os.system(ARGUSFILE)
+
+elif options.new == ('y'):
+	os.system('/usr/sbin/nsm --all --stop')
+	os.system('cp /nsmhero/lessons/files/local.rules /etc/nsm/sensor1/rules')
+	os.system('rm -rf ' + NSMCAP)
+	os.system('rm -rf ' + NSMSANCP)
+	os.system('rm -rf ' + NSMIDSLOG)
+
+	def SANCPfiles(sancp):
+        	sancp = sancp + '%'
+        	db = MySQLdb.connect(host="127.0.0.1", user="sguil", passwd="password", db="server1_db")
+        	cursor = db.cursor()
+        	db.query("show tables like '{0}'".format(sancp))
+        	r = db.store_result()
+        	for row in r.fetch_row(-0):
+                	cursor.execute('drop table if exists %s; ' % row[0])
+        	db.close()
+
+	def EVENTfiles(event):
+        	event = event + '%'
+        	db = MySQLdb.connect(host="127.0.0.1", user="sguil", passwd="password", db="server1_db")
+        	cursor = db.cursor()
+        	db.query("show tables like '{0}'".format(event))
+        	r = db.store_result()
+        	for row in r.fetch_row(-0):
+                	cursor.execute('drop table if exists %s; ' % row[0])
+        	db.close()
+
+	def TCPHDRfiles(tcphdr):
+        	tcphdr = tcphdr + '%'
+        	db = MySQLdb.connect(host="127.0.0.1", user="sguil", passwd="password", db="server1_db")
+        	cursor = db.cursor()
+        	db.query("show tables like '{0}'".format(tcphdr))
+        	r = db.store_result()
+        	for row in r.fetch_row(-0):
+                	cursor.execute('drop table if exists %s; ' % row[0])
+        	db.close()
+
+	def UDPHDRfiles(udphdr):
+        	udphdr = udphdr + '%'
+        	db = MySQLdb.connect(host="127.0.0.1", user="sguil", passwd="password", db="server1_db")
+        	cursor = db.cursor()
+        	db.query("show tables like '{0}'".format(udphdr))
+        	r = db.store_result()
+        	for row in r.fetch_row(-0):
+                	cursor.execute('drop table if exists %s; ' % row[0])
+        	db.close()
+
+	def ICMPHDRfiles(icmphdr):
+        	icmphdr = icmphdr + '%'
+        	db = MySQLdb.connect(host="127.0.0.1", user="sguil", passwd="password", db="server1_db")
+        	cursor = db.cursor()
+        	db.query("show tables like '{0}'".format(icmphdr))
+        	r = db.store_result()
+        	for row in r.fetch_row(-0):
+                	cursor.execute('drop table if exists %s; ' % row[0])
+        	db.close()
+
+	def DATAfiles(data):
+        	data = data + '%'
+        	db = MySQLdb.connect(host="127.0.0.1", user="sguil", passwd="password", db="server1_db")
+        	cursor = db.cursor()
+        	db.query("show tables like '{0}'".format(data))
+        	r = db.store_result()
+        	for row in r.fetch_row(-0):
+                	cursor.execute('drop table if exists %s; ' % row[0])
+        	db.close()
+
+	SANCPfiles('sancp')
+	EVENTfiles('event')
+	TCPHDRfiles('tcphdr')
+	UDPHDRfiles('udphdr')
+	ICMPHDRfiles('icmphdr')
+	DATAfiles('data')
+
+	os.system('/etc/init.d/mysqld restart')
+
+	CLASSOBJ = '/usr/bin/kwrite ' + NSMCLASS + '/' + options.lesson + '/Objectives-' + options.lesson + ' &'
+	os.system(CLASSOBJ)
+
+	PCAPCP = 'cp '+ NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap /tmp'
+        os.system(PCAPCP)
+	METAFILE = NSMCLASS + '/' + options.lesson + '/meta'
+        META = open(METAFILE, "r")
+        lines = META.readlines()
+        for line in lines:
+		if line == ('wireshark\n'):
+			WSHARK = '/usr/sbin/wireshark -r ' + NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap' + ' &'
+			os.system(WSHARK)
+                if line == ('rules\n'):
+                        os.system('/usr/bin/kwrite /etc/nsm/sensor1/rules/local.rules')
+		if line == ('restart\n'):
+			RMWALDO = 'rm -rf ' + NSMETC + '/' + SensorName + '/barnyard2.waldo'
+			os.system(RMWALDO)
+                        os.system('nsm --all --start')
+                if line == ('pcap\n'):
+                        PCAPFILE = '/usr/bin/tcpreplay --pktlen -i eth0 ' + NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap'
+                        os.system(PCAPFILE)
+		if line == ('argus\n'):
+			ARGUSFILE = 'argus -r ' + NSMCLASS + '/' + options.lesson + '/' + options.lesson + '.pcap -p -w - |ra -L0 -nn'
+			os.system(ARGUSFILE)
+			
+
+else:
+	print 'Valid arguments are "y" or "n".'
+	sys.exit()

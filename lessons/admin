@@ -1,0 +1,8 @@
+
+1. Create snort rule from pcap analysis.
+
+2. Discover and identify various protocols within pcap. Create snort rule if traffic is deemed to be malicious.
+
+3. Explain what is bad about the traffic being presented.
+
+4. Identify traffic based off flow data.

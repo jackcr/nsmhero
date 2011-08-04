@@ -1,0 +1,15 @@
+*** Scenario 1
+*** Note: Do not kill script unless an error message is displayed.
+*** Note: Do not close this window.  It is needed to answer the questions below.
+
+1. What was the method of attack?
+2. What files were downloaded to the victim machine?
+3. What types of malicious code was installed and executed?
+4. How can you tell code was executed on the victim machine?
+5. Replay lesson with 'sudo go -l 1 -n n'.  Use rule file to wirte snort rule to detect additional traffic observed.
+
+***Note: Once the snort rule has been written you must save and close the rules file before the scenario will continue.
+
+IF THERE ARE ANY QUESTIONS DURING THIS CHALLENGE PLEASE DON'T HESITATE TO ASK.
+
+
